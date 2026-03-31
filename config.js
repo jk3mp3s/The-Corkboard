@@ -2,9 +2,6 @@
 export const SUPABASE_URL = 'https://bgzquygijfaiovzbyhdc.supabase.co';
 export const SUPABASE_KEY = 'sb_publishable_OOg55V4zSkKRSf1Y4KHZKQ_-ZZ72RV6';
 
-// ── ADMIN ─────────────────────────────────────────────────────────
-export const ADMIN_PASSWORD = 'cuo8FPJy8nmvbzgeBwMk';
-export const ADMIN_LS_KEY   = 'cork_admin_unlocked';
 
 // ── PIN COLOURS ───────────────────────────────────────────────────
 export const PINS = [

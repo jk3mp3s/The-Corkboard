@@ -1,10 +1,10 @@
 
-const ADMIN_UID = 'PASTE-YOUR-SUPABASE-USER-UUID-HERE';
+const ADMIN_UID = 'ad949052-8e77-4f18-b72f-bdcc57d10f6d';
 
 
 import {
   PINS, NOTE_CLS, MAX_NOTE_CHARS, MAX_CAPTION_CHARS,
-  ADMIN_PASSWORD, ADMIN_LS_KEY, CFG_DEFAULTS,
+  CFG_DEFAULTS,
 } from './config.js';
 
 import {
@@ -48,14 +48,6 @@ async function checkAdminSession() {
 
   document.getElementById('adminPostRow').classList.toggle('visible', isAdminUnlocked);
   document.getElementById('adminPanel').classList.toggle('unlocked', isAdminUnlocked);
-}
-
-function unlockAdmin() {
-  isAdminUnlocked = true;
-  localStorage.setItem(ADMIN_LS_KEY, '1');
-  document.getElementById('adminPanel').classList.add('unlocked');
-  document.getElementById('adminPostRow').classList.add('visible');
-  renderBoard();
 }
 
 async function lockAdmin() {
@@ -308,20 +300,16 @@ function renderLightbox() {
         </div>
       </div>`;
   } else {
-    return `
-      <div class="polaroid${adminCls}" style="--rot:${m.rotation}deg;animation-delay:${i * .04}s"
-        onclick="openLightbox('photo','${m.id}')">
-      ${top}
-      ${isAdminUnlocked ? `<button class="item-delete" onclick="deletePostById('${m.id}', event)" title="Delete photo">✕</button>` : ''}
-      <img class="polaroid-img" src="${m.img || ''}" alt="photo" loading="lazy">
-      ${m.caption
-        ? `<div class="polaroid-caption">${esc(m.caption)}</div>`
-        : `<div class="polaroid-caption" style="color:#c8b098;font-size:0.85rem">no caption</div>`}
-      <div class="polaroid-footer">
-        <span class="polaroid-time">${fmtTime(m.postedAt)}</span>
-        <span class="polaroid-expire">exp ${timeFmt(m.expiresAt - now)}</span>
-      </div>
-    </div>`;
+    cardHtml = `
+      <div class="lb-polaroid${adminCls}" style="position:relative">
+        ${topEl}
+        <img src="${m.img || ''}" style="width:100%;aspect-ratio:1/1;object-fit:cover;display:block;">
+        ${m.caption ? `<div class="polaroid-caption" style="font-size:1.2rem;margin-top:6px">${esc(m.caption)}</div>` : ''}
+        <div class="polaroid-footer" style="margin-top:4px">
+          <span class="polaroid-time">${fmtTime(m.postedAt)}</span>
+          <span class="polaroid-expire">exp ${timeFmt(m.expiresAt - now)}</span>
+        </div>
+      </div>`;
   }
 
   document.getElementById('lbCard').innerHTML =
@@ -540,7 +528,7 @@ function showToast(msg, type = '') {
 async function init() {
   buildPins('pinOptionsNote',  'red',  id => selectedPinNote  = id);
   buildPins('pinOptionsPhoto', 'blue', id => selectedPinPhoto = id);
-  checkAdminSession();
+  await checkAdminSession();
   await loadConfig();
   await checkAndHandleReset();
   await loadMessages();
