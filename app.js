@@ -1,3 +1,7 @@
+
+const ADMIN_UID = 'PASTE-YOUR-SUPABASE-USER-UUID-HERE';
+
+
 import {
   PINS, NOTE_CLS, MAX_NOTE_CHARS, MAX_CAPTION_CHARS,
   ADMIN_PASSWORD, ADMIN_LS_KEY, CFG_DEFAULTS,
@@ -8,6 +12,7 @@ import {
   dbLoadMessages, dbPostNote, dbPostPhoto,
   dbDeleteExpired, dbClearAllPosts, dbDeletePost,
   setupRealtime,
+  adminSignIn, adminSignOut, getCurrentUser,
 } from './supabase.js';
 
 // ── STATE ─────────────────────────────────────────────────────────
@@ -37,10 +42,12 @@ function markPosted() { localStorage.setItem('cork_posted_' + (nextReset ? new D
 function clearPosted(){ Object.keys(localStorage).forEach(k => { if (k.startsWith('cork_posted_')) localStorage.removeItem(k); }); }
 
 // ── ADMIN SESSION ─────────────────────────────────────────────────
-function checkAdminSession() {
-  isAdminUnlocked = localStorage.getItem(ADMIN_LS_KEY) === '1';
+async function checkAdminSession() {
+  const user = await getCurrentUser();
+  isAdminUnlocked = !!user && user.id === ADMIN_UID;
+
   document.getElementById('adminPostRow').classList.toggle('visible', isAdminUnlocked);
-  if (isAdminUnlocked) document.getElementById('adminPanel').classList.add('unlocked');
+  document.getElementById('adminPanel').classList.toggle('unlocked', isAdminUnlocked);
 }
 
 function unlockAdmin() {
@@ -51,13 +58,14 @@ function unlockAdmin() {
   renderBoard();
 }
 
-function lockAdmin() {
+async function lockAdmin() {
+  await adminSignOut();
   isAdminUnlocked = false;
-  localStorage.removeItem(ADMIN_LS_KEY);
   document.getElementById('adminPanel').classList.remove('unlocked', 'open');
   document.getElementById('adminPostRow').classList.remove('visible');
   document.getElementById('adminPostCheck').checked = false;
   renderBoard();
+  updateCompose();
 }
 
 // ── CONFIG ────────────────────────────────────────────────────────
@@ -456,13 +464,33 @@ function bindEvents() {
   });
 
   // Admin panel
-  document.getElementById('adminToggle').addEventListener('click', () => document.getElementById('adminPanel').classList.toggle('open'));
-  document.getElementById('pwSubmit').addEventListener('click', () => {
-    if (document.getElementById('pwInput').value === ADMIN_PASSWORD) {
-      unlockAdmin(); document.getElementById('pwInput').value = ''; document.getElementById('pwError').style.display = 'none';
-    } else { document.getElementById('pwError').style.display = 'block'; }
+  document.getElementById('adminToggle').addEventListener('click', () => {
+    document.getElementById('adminPanel').classList.toggle('open');
   });
-  document.getElementById('pwInput').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('pwSubmit').click(); });
+
+  document.getElementById('pwSubmit').addEventListener('click', async () => {
+    const email = document.getElementById('adminEmail').value.trim();
+    const password = document.getElementById('adminPassword').value;
+
+    const ok = await adminSignIn(email, password);
+    if (!ok) {
+      document.getElementById('pwError').textContent = 'Login failed';
+      document.getElementById('pwError').style.display = 'block';
+      return;
+    }
+
+    await checkAdminSession();
+    renderBoard();
+    updateCompose();
+
+    document.getElementById('adminPassword').value = '';
+    document.getElementById('pwError').style.display = 'none';
+  });
+
+  document.getElementById('adminPassword').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('pwSubmit').click();
+  });
+
   document.getElementById('lockBtn').addEventListener('click', lockAdmin);
 
   document.getElementById('saveBtn').addEventListener('click', async () => {

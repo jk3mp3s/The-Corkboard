@@ -90,6 +90,35 @@ export async function dbPostNote({ text, pinBg, deviceId, msgLifetimeSec, isAdmi
 }
 
 /**
+ * Admin Authorization Helper
+ */
+export async function adminSignIn(email, password) {
+  const { error } = await sb.auth.signInWithPassword({ email, password });
+  if (error) {
+    console.error('admin sign in:', error);
+    return false;
+  }
+  return true;
+}
+
+export async function adminSignOut() {
+  const { error } = await sb.auth.signOut();
+  if (error) {
+    console.error('admin sign out:', error);
+    return false;
+  }
+  return true;
+}
+
+export async function getCurrentUser() {
+  const { data, error } = await sb.auth.getUser();
+  if (error) {
+    console.error('get user:', error);
+    return null;
+  }
+  return data.user;
+}
+/**
  * Insert a new photo post + its image row.
  * Returns true on success, false on failure.
  */

@@ -600,12 +600,16 @@
   <!-- Locked state: password prompt -->
   <div class="admin-locked">
     <div class="admin-field">
-      <label>Admin Password</label>
-      <input type="password" id="pwInput" placeholder="Enter password…">
+      <label>Admin Email</label>
+      <input type="email" id="adminEmail" placeholder="you@example.com">
     </div>
-    <div class="pw-error" id="pwError">Incorrect password</div>
+    <div class="admin-field">
+      <label>Password</label>
+      <input type="password" id="adminPassword" placeholder="Enter password">
+    </div>
+    <div class="pw-error" id="pwError">Login failed</div>
     <div class="admin-btns">
-      <button class="admin-btn save" id="pwSubmit">Unlock</button>
+      <button class="admin-btn save" id="pwSubmit">Sign In</button>
     </div>
   </div>
 
